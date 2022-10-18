@@ -8,9 +8,8 @@ import (
 )
 
 func main() {
-	databases.StartDB()
 	r := router.Router()
-	
+	databases.Migrate()
 	err := r.Run(":8080")
 
 	if err != nil {

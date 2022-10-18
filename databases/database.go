@@ -23,19 +23,23 @@ var (
 	err error
 )
 
-func StartDB() *gorm.DB {
+func Migrate() {
+	ConnectionDB()
+	db.Debug().AutoMigrate(models.User{}, models.Photo{}, models.SocialMedia{}, models.Comment{})
+}
+
+func ConnectionDB() *gorm.DB {
 	config := fmt.Sprintf("host=%s user=%s password=%s port=%s, dbname=%s sslmode=disable", 
                 HOSTNAME, USER, PASSWORD, DBPORT, DBNAME)
 
-	db, err := gorm.Open(postgres.Open(config), &gorm.Config{})
+	db, err = gorm.Open(postgres.Open(config), &gorm.Config{})
 
 	if err != nil {
 		panic(err)
 	}
 
-	db.Debug().AutoMigrate(models.User{}, models.Photo{}, models.SocialMedia{}, models.Comment{})
-
 	return db
+
 }
 
 

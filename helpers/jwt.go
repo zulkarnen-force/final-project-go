@@ -11,7 +11,7 @@ import (
 
 var secretKey = []byte("rahasia")
 
-func GenerateToken(id uint, email string) string {
+func GenerateToken(id int, email string) string {
 
 	claims := jwt.MapClaims{
 		"id": id,
