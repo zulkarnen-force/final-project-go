@@ -13,6 +13,15 @@ import (
 
 var appJson string = "application/json"
 
+
+// GetOrders godoc
+// @Summary      Show an orders
+// @Description  get orders data
+// @Tags         orders
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  models.User
+// @Router       /orders [get]
 func (c *Controller) UserLogin(ctx *gin.Context) {
 	
 	contentType := helpers.GetContentType(ctx)
@@ -81,10 +90,7 @@ func (c *Controller)  UserRegister(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"id":User.ID,
-		"email":User.Email,
-	})
+	ctx.JSON(http.StatusCreated, User.ResponseRegister())
 }
 
 
@@ -120,7 +126,7 @@ func (c *Controller) UserUpdate(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message":"successfully updated data",
-		"data": &UserUpdated,
+		"data": UserUpdated.ResponseUpdate(),
 	})
 
 }
@@ -145,6 +151,6 @@ func (c *Controller) UserDelete(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message":"successfully deleted",
+		"message":"your account has been successfully deleted",
 	})
 }

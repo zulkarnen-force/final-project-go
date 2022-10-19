@@ -31,3 +31,21 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	err = nil 
 	return
 }
+
+
+type ResponseUser struct {
+	Age int `json:"age"`
+	ID int`json:"id"`
+	Username string `json:"username"`
+	Email string `json:"email,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+}
+
+
+func (u *User) ResponseRegister() ResponseUser {
+	return ResponseUser{Age: u.Age, ID: u.ID, Username: u.Username, Email: u.Email}
+}
+
+func (u *User) ResponseUpdate() ResponseUser {
+	return ResponseUser{Age: u.Age, ID: u.ID, Username: u.Username, Email: u.Email, UpdatedAt: u.UpdatedAt}
+}
