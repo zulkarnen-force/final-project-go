@@ -44,7 +44,7 @@ func (c *Controller) CreatePhoto(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{
-		"data":&photo,
+		"data":photo.ResponsePhotoCreate(),
 	})
 }
 
@@ -53,11 +53,14 @@ func (c *Controller)  GetPhotos(ctx *gin.Context) {
 
 	var photos []models.Photo
 
+	var photo models.Photo = models.Photo{}
 
 	c.DB.Model(&models.Photo{}).Preload("User").Find(&photos)
 
+	responsePhotos := photo.ResponseGetPhotos(&photos)
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"data": photos,
+		"data": responsePhotos,
 	})
 }
 
@@ -93,7 +96,7 @@ func (c *Controller) UpdatePhoto(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message":"successfully updated data",
-		"data": &photo,
+		"data":&photo,
 	})
 
 }

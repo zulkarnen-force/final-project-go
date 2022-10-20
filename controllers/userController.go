@@ -137,10 +137,6 @@ func (c *Controller) UserDelete(ctx *gin.Context) {
 	id := int(userData["id"].(float64))
 	var user models.User
 
-
-	// check is exists?
-	fmt.Println(id)
-
 	err := c.DB.First(&user, id).Error 
 
 	if err != nil {

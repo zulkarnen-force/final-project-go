@@ -10,13 +10,13 @@ import (
 )
 
 type User struct {
-	ID        int       `gorm:"primarykey" json:"id"`
-	Username  string    `json:"username" valid:"required~Your Username is required"`
-	Email     string    `json:"email" valid:"email,required~Your Email is required"`
-	Password  string 	`json:"password" valid:"required~Your Password is required,minstringlength(6)~Password has to have a minumum length of 6 characters"`
-	Age       int       `json:"age" valid:"required~Your Age is required,range(9|255)~Minimum age must be more than 8"` 
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        int       `gorm:"primarykey" json:"id,omitempty"`
+	Username  string    `json:"username,omitempty" valid:"required~Your Username is required"`
+	Email     string    `json:"email,omitempty" valid:"email,required~Your Email is required"`
+	Password  string 	`json:"password,omitempty" valid:"required~Your Password is required,minstringlength(6)~Password has to have a minumum length of 6 characters"`
+	Age       int       `json:"age,omitempty" valid:"required~Your Age is required,range(9|255)~Minimum age must be more than 8"` 
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
@@ -45,6 +45,7 @@ type ResponseUser struct {
 func (u *User) ResponseRegister() ResponseUser {
 	return ResponseUser{Age: u.Age, ID: u.ID, Username: u.Username, Email: u.Email}
 }
+
 
 func (u *User) ResponseUpdate() ResponseUser {
 	return ResponseUser{Age: u.Age, ID: u.ID, Username: u.Username, Email: u.Email, UpdatedAt: u.UpdatedAt}
