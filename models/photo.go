@@ -35,17 +35,15 @@ type ResponsePhoto struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-
-func (p *Photo) ResponsePhotoCreate() ResponsePhoto {
-	return ResponsePhoto{
-		ID: p.ID,
-		Title: p.Title,
-		Caption: p.Caption,
-		PhotoURL: p.PhotoURL,
-		UserID: p.UserID,
-		CreatedAt: p.CreatedAt,
-	}
+type PhotoResponseUpdate struct {
+	ID int `json:"id"`
+	Title 		string `json:"title"`
+	Caption 	string `json:"caption"`
+	PhotoURL	string `json:"photo_url"`
+	UserID	int `json:"user_id"`
+	UpdatedAt	time.Time `json:"updated_at"`
 }
+
 
 type ResponseGetPhotos struct {
 	ID        int `json:"id,omitempty" gorm:"primarykey"`
@@ -60,6 +58,20 @@ type ResponseGetPhotos struct {
 		Email string `json:"email"`
 		} `json:"user,omitempty"`
 }
+
+
+
+func (p *Photo) ResponsePhotoCreate() ResponsePhoto {
+	return ResponsePhoto{
+		ID: p.ID,
+		Title: p.Title,
+		Caption: p.Caption,
+		PhotoURL: p.PhotoURL,
+		UserID: p.UserID,
+		CreatedAt: p.CreatedAt,
+	}
+}
+
 
 
 func (p *Photo) ResponseGetPhotos(photosData *[]Photo) *[]ResponseGetPhotos {
@@ -84,5 +96,20 @@ func (p *Photo) ResponseGetPhotos(photosData *[]Photo) *[]ResponseGetPhotos {
 	}
 
 	return &photos
+	
+}
+
+
+
+func (p *Photo) ResponseUpdatePhoto() *PhotoResponseUpdate {
+	
+	return &PhotoResponseUpdate{
+		ID: p.ID,
+		Title: p.Title,
+		Caption: p.Caption,
+		PhotoURL: p.PhotoURL,
+		UserID: p.UserID,
+		UpdatedAt: p.UpdatedAt,
+	}
 	
 }

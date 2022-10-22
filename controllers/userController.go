@@ -2,16 +2,49 @@ package controllers
 
 import (
 	"final-project-go/helpers"
+	"final-project-go/mappers"
 	"final-project-go/models"
+	"final-project-go/services"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 var appJson string = "application/json"
+
+type UserController struct {
+	UserService services.UserService
+}
+
+func NewUserController(userService *services.UserService) UserController {
+	return UserController{UserService: *userService}
+}
+
+func (controller *UserController) Register(ctx *gin.Context) {
+	contentType := helpers.GetContentType(ctx)
+
+	user := models.User{}
+
+	if contentType == appJson {
+		ctx.ShouldBindJSON(&user)
+	} else {
+		ctx.ShouldBind(&user)
+	}
+	
+	response, err := controller.UserService.Create(user)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error":"bad request",
+			"message":err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, response)
+}
 
 
 // GetOrders godoc
@@ -59,7 +92,6 @@ func (c *Controller) UserLogin(ctx *gin.Context) {
 	}
 
 	token := helpers.GenerateToken(User.ID, User.Email)
-	fmt.Println("Token => ", token)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"token": token,
@@ -72,15 +104,15 @@ func (c *Controller)  UserRegister(ctx *gin.Context) {
 
 	contentType := helpers.GetContentType(ctx)
 
-	User := models.User{}
+	user := models.User{}
 
 	if contentType == appJson {
-		ctx.ShouldBindJSON(&User)
+		ctx.ShouldBindJSON(&user)
 	} else {
-		ctx.ShouldBind(&User)
+		ctx.ShouldBind(&user)
 	}
 	
-	err := c.DB.Debug().Create(&User).Error
+	err := c.DB.Debug().Create(&user).Error
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -90,7 +122,7 @@ func (c *Controller)  UserRegister(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, User.ResponseRegister())
+	ctx.JSON(http.StatusCreated, mappers.GetResponseRegister(user))
 }
 
 
@@ -98,14 +130,12 @@ func (c *Controller) UserUpdate(ctx *gin.Context) {
 	
 	var UserUpdated models.User
 	contentType := helpers.GetContentType(ctx)
-
-	// get ID using jsonData
-	id, _ := ctx.Params.Get("id")
-	userID, _ := strconv.Atoi(id)
+	var userData jwt.MapClaims = ctx.MustGet("userData").(jwt.MapClaims)
+	var userID int = int(userData["id"].(float64))
 
 	if err := c.DB.First(&UserUpdated, userID).Error; err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": fmt.Sprintf("user with id %s not found", id),
+			"message": fmt.Sprintf("user with id %d not found", userID),
 			"msg_dev": err.Error(),
 		})
 		return 		
@@ -124,10 +154,9 @@ func (c *Controller) UserUpdate(ctx *gin.Context) {
 		})
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message":"successfully updated data",
-		"data": UserUpdated.ResponseUpdate(),
-	})
+	ctx.JSON(http.StatusOK,
+		mappers.GetResponseUpdate(UserUpdated),
+	)
 
 }
 
@@ -147,6 +176,6 @@ func (c *Controller) UserDelete(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message":"your account has been successfully deleted",
+		"message": "Your account has been successfully deleted",
 	})
 }

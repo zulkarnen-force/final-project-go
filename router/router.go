@@ -5,6 +5,8 @@ import (
 	"final-project-go/databases"
 	docs "final-project-go/docs"
 	"final-project-go/middlewares"
+	"final-project-go/repository"
+	"final-project-go/services"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
@@ -18,6 +20,10 @@ func Router() *gin.Engine {
 	db :=  databases.ConnectionDB()
 	router := gin.Default()
 
+	userRepo := repository.NewUserRepository(db)
+	userServices := services.NewUserService(&userRepo)
+	userController := controllers.NewUserController(&userServices)
+
 	controllers := controllers.Controller{
 		DB: db,
 	}
@@ -26,12 +32,12 @@ func Router() *gin.Engine {
 
 
 	router.POST("users/login", controllers.UserLogin)
-	router.POST("users/register", controllers.UserRegister)
+	router.POST("users/register", userController.Register)
 
 	userAuthRequired := router.Group("/users")
 	userAuthRequired.Use(middlewares.Authentication())
 	{
-		userAuthRequired.PUT("/:id", controllers.UserUpdate)
+		userAuthRequired.PUT("/", controllers.UserUpdate)
 		userAuthRequired.DELETE("/", controllers.UserDelete)
 	}
 
@@ -59,7 +65,7 @@ func Router() *gin.Engine {
 	socialMediaRouters.Use(middlewares.Authentication())
 	{
 		socialMediaRouters.POST("/", controllers.CreateSocialMedia)
-		socialMediaRouters.GET("/", controllers.GetSocialMedia)
+		socialMediaRouters.GET("/", controllers.GetSocialMedias)
 		socialMediaRouters.PUT("/:id", controllers.UpdateSocialMedia)
 		socialMediaRouters.DELETE("/:id", controllers.DeleteSocialMedia)
 	}
