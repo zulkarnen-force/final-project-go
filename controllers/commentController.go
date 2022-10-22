@@ -9,15 +9,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
 )
 
 
 func (c *Controller) CreateComment(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
-	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
+	userData := ctx.MustGet("userData").(jwt.MapClaims)
 	id := int(userData["id"].(float64))
 
-	var comment models.Comment = models.Comment{}
+	comment := models.Comment{}
+	comment.UserID = id
 
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&comment)
@@ -25,38 +27,28 @@ func (c *Controller) CreateComment(ctx *gin.Context) {
 		ctx.ShouldBind(&comment)
 	}
 
-	comment.UserID = id
-	var photo models.Photo
-
-	c.DB.Model(&models.Photo{}).Preload("User").Find(&photo)
-	comment.PhotoID = photo.ID
-	comment.UserID = photo.UserID
-	comment.Photo = photo
-	comment.User = photo.User
-
 	if err := c.DB.Debug().Create(&comment).Error; err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{
-			"message":"gagal crated comment",
+			"message":"gagal created comment",
 			"msg_dev":err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"data": &comment,
-	})
+	ctx.JSON(http.StatusCreated, comment.GetResponseCreate())
 }
 
 
 func (c *Controller)  GetComments(ctx *gin.Context) {
 
 	var comments []models.Comment
+	var Comment models.Comment
 
-	c.DB.Debug().Model(&models.Comment{}).Preload("User").Preload("Photo.User").Find(&comments)
+	c.DB.Debug().Model(&models.Comment{}).Preload("User", func (db *gorm.DB) *gorm.DB {
+		return	db.Select("id", "email", "username")
+	}).Preload("Photo.User").Find(&comments)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"data": comments,
-	})
+	ctx.JSON(http.StatusOK, Comment.GetResponseComments(&comments))
 }
 
 
@@ -70,7 +62,7 @@ func (c *Controller) UpdateComment(ctx *gin.Context) {
 
 	if err := c.DB.First(&comment, id).Error; err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": fmt.Sprintf("user with id %s not found", id),
+			"message": fmt.Sprintf("user with id %d not found", id),
 			"msg_dev": err.Error(),
 		})
 		return 		
@@ -89,10 +81,7 @@ func (c *Controller) UpdateComment(ctx *gin.Context) {
 		})
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message":"successfully updated data",
-		"data": &comment,
-	})
+	ctx.JSON(http.StatusOK, comment.GetResponseUpdate())
 
 }
 
@@ -102,8 +91,6 @@ func (c *Controller) DeleteComment(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ParamID)
 
 	var comment models.Comment
-	// check is exists?
-	fmt.Println(id)
 
 	err := c.DB.First(&comment, id).Error 
 
@@ -124,6 +111,6 @@ func (c *Controller) DeleteComment(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message":"successfully deleted",
+		"message":"Your comment has been successfully deleted",
 	})
 }

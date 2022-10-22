@@ -17,7 +17,8 @@ func (c *Controller) CreateSocialMedia(ctx *gin.Context) {
 	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
 	id := int(userData["id"].(float64))
 
-	var socialMedia models.SocialMedia = models.SocialMedia{}
+	var socialMedia models.SocialMedia
+	socialMedia.UserID = id
 
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&socialMedia)
@@ -25,35 +26,19 @@ func (c *Controller) CreateSocialMedia(ctx *gin.Context) {
 		ctx.ShouldBind(&socialMedia)
 	}
 
-	socialMedia.UserID = id
-	var user models.User
+	c.DB.Create(&socialMedia)
 
-	c.DB.First(&user, id)
-	socialMedia.User = user
-
-	if err := c.DB.Debug().Create(&socialMedia).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{
-			"message":"gagal crated comment",
-			"msg_dev":err.Error(),
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, gin.H{
-		"data": &socialMedia,
-	})
+	ctx.JSON(http.StatusCreated, socialMedia.GetResponseCreate())
 }
 
 
-func (c *Controller)  GetSocialMedia(ctx *gin.Context) {
+func (c *Controller)  GetSocialMedias(ctx *gin.Context) {
 
-	var socialMedias []models.SocialMedia
-
+	var socialMedias *[]models.SocialMedia
+	
 	c.DB.Debug().Model(&models.SocialMedia{}).Preload("User").Find(&socialMedias)
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"data": socialMedias,
-	})
+	
+	ctx.JSON(http.StatusOK, models.SocialMedia{}.ToResponseMedias(socialMedias))
 }
 
 
@@ -73,16 +58,12 @@ func (c *Controller) UpdateSocialMedia(ctx *gin.Context) {
 		return 		
 	}
 
-
-	fmt.Println("Sebelum ShouldBind", socialMedia)
-
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&socialMedia)
 	} else {
 		ctx.ShouldBind(&socialMedia)
 	}
 
-	fmt.Println("Habis ShouldBind", socialMedia)
 
 	if err := c.DB.Save(&socialMedia).Error; err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -92,10 +73,7 @@ func (c *Controller) UpdateSocialMedia(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message":"successfully updated data",
-		"data": socialMedia,
-	})
+	ctx.JSON(http.StatusOK, socialMedia.GetResponseUpdate())
 
 }
 
@@ -125,6 +103,6 @@ func (c *Controller) DeleteSocialMedia(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message":"successfully deleted",
+		"message":"Your social media has been successfully deleted",
 	})
 }

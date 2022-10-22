@@ -43,9 +43,7 @@ func (c *Controller) CreatePhoto(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
-		"data":photo.ResponsePhotoCreate(),
-	})
+	ctx.JSON(http.StatusCreated, photo.ResponsePhotoCreate())
 }
 
 
@@ -59,9 +57,7 @@ func (c *Controller)  GetPhotos(ctx *gin.Context) {
 
 	responsePhotos := photo.ResponseGetPhotos(&photos)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"data": responsePhotos,
-	})
+	ctx.JSON(http.StatusOK, responsePhotos)
 }
 
 
@@ -94,16 +90,13 @@ func (c *Controller) UpdatePhoto(ctx *gin.Context) {
 		})
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message":"successfully updated data",
-		"data":&photo,
-	})
+	ctx.JSON(http.StatusOK, photo.ResponseUpdatePhoto())
 
 }
 
 
 func (c *Controller) DeletePhoto(ctx *gin.Context) {
-	stringId, _ := ctx.Params.Get("commentID")
+	stringId, _ := ctx.Params.Get("photoId")
 	id, _ := strconv.Atoi(stringId)
 
 	var Photo models.Photo
@@ -111,7 +104,7 @@ func (c *Controller) DeletePhoto(ctx *gin.Context) {
 	err := c.DB.First(&Photo, id).Error 
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, map[string]interface{}{
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"status":"not found",
 			"msg_dev":err.Error(),
 		})
@@ -119,7 +112,7 @@ func (c *Controller) DeletePhoto(ctx *gin.Context) {
 	}
 
 	if err := c.DB.Delete(&Photo).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, map[string]interface{}{
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"status":"failed to deleted ",
 			"msg_dev":err.Error(),
 		})
@@ -127,6 +120,6 @@ func (c *Controller) DeletePhoto(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message":"successfully deleted",
+		"message":"Your photo has ben successfully deleted",
 	})
 }
