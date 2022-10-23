@@ -24,6 +24,10 @@ func Router() *gin.Engine {
 	userServices := services.NewUserService(&userRepo)
 	userController := controllers.NewUserController(&userServices)
 
+	photoRepository := repository.NewPhotoRepository(db)
+	photoService := services.NewPhotoService(&photoRepository)
+	photoController := controllers.NewPhotoController(&photoService)
+
 	controllers := controllers.Controller{
 		DB: db,
 	}
@@ -45,10 +49,10 @@ func Router() *gin.Engine {
 	photoRouters := router.Group("/photos")
 	photoRouters.Use(middlewares.Authentication())
 	{
-		photoRouters.POST("/", controllers.CreatePhoto)
-		photoRouters.GET("/", controllers.GetPhotos)
-		photoRouters.PUT("/:photoId", controllers.UpdatePhoto)
-		photoRouters.DELETE("/:photoId", controllers.DeletePhoto)
+		photoRouters.POST("/", photoController.CreatePhoto)
+		photoRouters.GET("/", photoController.GetPhotos)
+		photoRouters.PUT("/:photoId", photoController.UpdatePhotoByID)
+		photoRouters.DELETE("/:photoId", photoController.DeletePhoto)
 	}
 
 	commentRouters := router.Group("/comments")

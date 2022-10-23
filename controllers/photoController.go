@@ -3,7 +3,7 @@ package controllers
 import (
 	"final-project-go/helpers"
 	"final-project-go/models"
-	"fmt"
+	"final-project-go/services"
 	"net/http"
 	"strconv"
 
@@ -11,8 +11,18 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
+type PhotoService = services.PhotoService
 
-func (c *Controller) CreatePhoto(ctx *gin.Context) {
+type PhotoController struct {
+	photoService services.PhotoService
+}
+
+
+func NewPhotoController(photoService *PhotoService) PhotoController {
+	return PhotoController{photoService: *photoService}
+}
+
+func (c *PhotoController) CreatePhoto(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
 	id := int(userData["id"].(float64))
@@ -27,41 +37,32 @@ func (c *Controller) CreatePhoto(ctx *gin.Context) {
 
 	photo.UserID = id
 
+	response, err := c.photoService.Create(photo)
 
-	var user models.User
-
-	c.DB.First(&user, id)
-
-	photo.User = user
-
-
-	if err := c.DB.Debug().Create(&photo).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{
-			"message":"gagal crated photo",
-			"msg_dev":err.Error(),
-		})
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, photo.ResponsePhotoCreate())
+	ctx.JSON(http.StatusCreated, response)
+
 }
 
 
-func (c *Controller)  GetPhotos(ctx *gin.Context) {
+func (c *PhotoController)  GetPhotos(ctx *gin.Context) {
 
-	var photos []models.Photo
+	response, err := c.photoService.GetAll()
 
-	var photo models.Photo = models.Photo{}
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, response)
+		return
+	}
 
-	c.DB.Model(&models.Photo{}).Preload("User").Find(&photos)
-
-	responsePhotos := photo.ResponseGetPhotos(&photos)
-
-	ctx.JSON(http.StatusOK, responsePhotos)
+	ctx.JSON(http.StatusOK, response)
 }
 
 
-func (c *Controller) UpdatePhoto(ctx *gin.Context) {
+func (c *PhotoController) UpdatePhotoByID(ctx *gin.Context) {
 	
 	var photo models.Photo
 	contentType := helpers.GetContentType(ctx)
@@ -69,57 +70,36 @@ func (c *Controller) UpdatePhoto(ctx *gin.Context) {
 	id, _ := ctx.Params.Get("photoId")
 	photoID, _ := strconv.Atoi(id)
 
-	if err := c.DB.First(&photo, photoID).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": fmt.Sprintf("user with id %s not found", id),
-			"msg_dev": err.Error(),
-		})
-		return 		
-	}
-
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&photo)
 	} else {
 		ctx.ShouldBind(&photo)
 	}
 
-	if err := c.DB.Save(&photo).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message" : "failure updated data to database", 
-			"msg_dev" :err.Error(),
-		})
-	}
+	response, err := c.photoService.UpdatePhotoByID(photo, photoID)
 
-	ctx.JSON(http.StatusOK, photo.ResponseUpdatePhoto())
+	_ = err
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, response)
+	}
+	
+	ctx.JSON(http.StatusOK, response)
 
 }
 
 
-func (c *Controller) DeletePhoto(ctx *gin.Context) {
+func (c *PhotoController) DeletePhoto(ctx *gin.Context) {
 	stringId, _ := ctx.Params.Get("photoId")
 	id, _ := strconv.Atoi(stringId)
+	var photo models.Photo
 
-	var Photo models.Photo
-
-	err := c.DB.First(&Photo, id).Error 
+	response, err := c.photoService.DeletePhotoByID(photo, id)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"status":"not found",
-			"msg_dev":err.Error(),
-		})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	if err := c.DB.Delete(&Photo).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"status":"failed to deleted ",
-			"msg_dev":err.Error(),
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"message":"Your photo has ben successfully deleted",
-	})
+	ctx.JSON(http.StatusOK, response)
 }
