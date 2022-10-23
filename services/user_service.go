@@ -73,19 +73,41 @@ func (service *userServiceImpl) Login(user entity.User) (interface{}, error) {
 
 func (service *userServiceImpl) Update(user entity.User, id int) (interface{}, error) {
 	
-	userUpdated, err := service.UserRepository.Update(&user, id)
+	usr, err := service.UserRepository.Update(user, id)
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
 		return models.ErrorResponse{
-			Message: fmt.Sprintf("error because with %d record not found", id),
+			Message: "error updated photo because GetUserByID" + err.Error(),
 			MessageDev: err.Error(),
-			Code: http.StatusNotFound,
 		}, err
 	}
 
-	response := mappers.GetResponseUpdate(userUpdated)
+
+	
+
+	if err != nil {
+		return models.ErrorResponse{
+			Message: "error updated photo because " + err.Error(),
+			MessageDev: err.Error(),
+		}, err
+	}
+
+	response := mappers.GetResponseUpdate(usr)
+
 	return response, nil
+	
+
+	// if errors.Is(err, gorm.ErrRecordNotFound) {
+	// 	return models.ErrorResponse{
+	// 		Message: fmt.Sprintf("error because with %d record not found", id),
+	// 		MessageDev: err.Error(),
+	// 		Code: http.StatusNotFound,
+	// 	}, err
+	// }
+
+
 }
+
 
 func (service *userServiceImpl) Delete(user entity.User, id int) (interface{}, error) {
 	
@@ -115,3 +137,18 @@ func (service *userServiceImpl) Delete(user entity.User, id int) (interface{}, e
 
 }
 
+
+
+
+// func (service *userServiceImpl) GetUserByID(id int) (interface{}, error) {
+	
+// 	user, err := service.UserRepository.GetUserByID(id)
+
+// 	if err != nil {
+// 		return entity.User{}, err
+// 	}
+
+// 	response := models.SuccessResponse{Message: "Your account has been deleted successfully"}
+// 	return response, nil
+
+// }

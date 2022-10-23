@@ -77,7 +77,10 @@ func (controller *UserController) Update(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 	userData := ctx.MustGet("userData").(jwt.MapClaims)
 	id := int(userData["id"].(float64))
+	_ = id
 	var user models.User
+
+	// controller.UserService.Update(user, id)
 
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&user)
@@ -87,11 +90,14 @@ func (controller *UserController) Update(ctx *gin.Context) {
 
 	response, err := controller.UserService.Update(user, id)
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, response)
 	}
-
 	ctx.JSON(http.StatusCreated, response)
+
+	// if errors.Is(err, gorm.ErrRecordNotFound) {
+	// 	ctx.AbortWithStatusJSON(http.StatusNotFound, response)
+	// }
 }
 
 
