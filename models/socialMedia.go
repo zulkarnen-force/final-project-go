@@ -50,12 +50,6 @@ func (s *SocialMedia) GetResponseCreate() *SocialMediaResponseCreate {
 	return response
 }
 
-func (s *SocialMedia) GetResponseUpdate() *SocialMediaResponseUpdate {
-	response := new(SocialMediaResponseUpdate)
-	copier.Copy(&response, &s)
-	return response
-}
-
 type SocialMediasResponse struct {
 	ID        int `json:"id" gorm:"primarykey"`
 	Name  string   `json:"name"`
@@ -65,6 +59,14 @@ type SocialMediasResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	User userResponse `json:"user"`
 }
+
+func (s *SocialMedia) GetResponseUpdate() *SocialMediaResponseUpdate {
+	response := new(SocialMediaResponseUpdate)
+	copier.Copy(&response, &s)
+	return response
+}
+
+
 
 func (s SocialMedia) ToResponseMedias(socialMediaDatas *[]SocialMedia) *[]SocialMediasResponse {
 	var socialMedias []SocialMediasResponse

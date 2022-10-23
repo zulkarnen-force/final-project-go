@@ -1,9 +1,12 @@
 package mappers
 
-import "final-project-go/models"
+import (
+	"final-project-go/models"
+)
 
 type UserResponseRegister = models.UserResponseRegister
 type UserResponseUpdate = models.UserResponseUpdate
+type UserLoginResponse = models.UserLoginResponse
 type User = models.User
 
 func GetResponseRegister(user User) UserResponseRegister {
@@ -19,4 +22,9 @@ func GetResponseUpdate(user User) UserResponseUpdate {
 		Email: user.Email,
 		UpdatedAt: user.UpdatedAt,
 	}
+}
+
+
+func GetUserLoginResponse(tkn string) UserLoginResponse {
+	return UserLoginResponse{Token: tkn}
 }

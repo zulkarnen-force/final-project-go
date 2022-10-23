@@ -19,3 +19,8 @@ type UserResponseUpdate struct {
 	Email string `json:"email,omitempty"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+
+type UserLoginResponse struct {
+	Token string `json:"token"`
+}

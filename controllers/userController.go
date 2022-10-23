@@ -1,12 +1,15 @@
 package controllers
 
 import (
+	"errors"
 	"final-project-go/helpers"
 	"final-project-go/mappers"
 	"final-project-go/models"
 	"final-project-go/services"
 	"fmt"
 	"net/http"
+
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -22,6 +25,7 @@ func NewUserController(userService *services.UserService) UserController {
 	return UserController{UserService: *userService}
 }
 
+
 func (controller *UserController) Register(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 
@@ -33,7 +37,7 @@ func (controller *UserController) Register(ctx *gin.Context) {
 		ctx.ShouldBind(&user)
 	}
 	
-	response, err := controller.UserService.Create(user)
+	response, err := controller.UserService.Register(user)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -47,6 +51,71 @@ func (controller *UserController) Register(ctx *gin.Context) {
 }
 
 
+func (controller *UserController) Login(ctx *gin.Context) {
+	contentType := helpers.GetContentType(ctx)
+
+	user := models.User{}
+
+	if contentType == appJson {
+		ctx.ShouldBindJSON(&user)
+	} else {
+		ctx.ShouldBind(&user)
+	}
+	
+	response, err := controller.UserService.Login(user)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, response)
+}
+
+
+func (controller *UserController) Update(ctx *gin.Context) {
+	contentType := helpers.GetContentType(ctx)
+	userData := ctx.MustGet("userData").(jwt.MapClaims)
+	id := int(userData["id"].(float64))
+	var user models.User
+
+	if contentType == appJson {
+		ctx.ShouldBindJSON(&user)
+	} else {
+		ctx.ShouldBind(&user)
+	}
+
+	response, err := controller.UserService.Update(user, id)
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, response)
+	}
+
+	ctx.JSON(http.StatusCreated, response)
+}
+
+
+func (controller *UserController) Delete(ctx *gin.Context) {
+	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
+	id := int(userData["id"].(float64))
+	var user models.User
+
+	response, err := controller.UserService.Delete(user, id)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, response)
+			return
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, response)
+			return
+		}
+	}
+
+
+	ctx.JSON(http.StatusOK, response)
+}
+
 // GetOrders godoc
 // @Summary      Show an orders
 // @Description  get orders data
@@ -55,49 +124,52 @@ func (controller *UserController) Register(ctx *gin.Context) {
 // @Produce      json
 // @Success      200  {object}  models.User
 // @Router       /orders [get]
-func (c *Controller) UserLogin(ctx *gin.Context) {
+// func (c *UserController) Login(ctx *gin.Context) {
 	
-	contentType := helpers.GetContentType(ctx)
+// 	contentType := helpers.GetContentType(ctx)
 
-	User := models.User{}
-	password := ""
+// 	User := models.User{}
+	
 
-	if contentType == appJson {
-		ctx.ShouldBindJSON(&User)
-	} else {
-		ctx.ShouldBind(&User)
-	}
+// 	if contentType == appJson {
+// 		ctx.ShouldBindJSON(&User)
+// 	} else {
+// 		ctx.ShouldBind(&User)
+// 	}
 
-	password = User.Password
+// 	password := User.Password
+// 	_ = password
 
-	err := c.DB.Debug().Where("email = ?", User.Email).Take(&User).Error
+	// err := c.DB.Debug().Where("email = ?", User.Email).Take(&User).Error
+	
+	// ctx.JSON(200, &User)
 
 
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"error":"unauthorized",
-			"message":"invalid email/password",
-		})
-		return
-	}
+	// if err != nil {
+	// 	ctx.JSON(http.StatusUnauthorized, gin.H{
+	// 		"error":"unauthorized",
+	// 		"message":"invalid email/password",
+	// 	})
+	// 	return
+	// }
 
-	isValidPassword := helpers.ComparePassword([]byte(User.Password), []byte(password))
+	// isValidPassword := helpers.ComparePassword([]byte(User.Password), []byte(password))
 
-	if !isValidPassword {
-		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"error":"unauthorized",
-			"message":"invalid email/password",
-		})
-		return
-	}
+	// if !isValidPassword {
+	// 	ctx.JSON(http.StatusUnauthorized, gin.H{
+	// 		"error":"unauthorized",
+	// 		"message":"invalid email/password",
+	// 	})
+	// 	return
+	// }
 
-	token := helpers.GenerateToken(User.ID, User.Email)
+	// token := helpers.GenerateToken(User.ID, User.Email)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"token": token,
+	// ctx.JSON(http.StatusOK, gin.H{
+	// 	"token": token,
 
-	})
-}
+	// })
+// }
 
 
 func (c *Controller)  UserRegister(ctx *gin.Context) {

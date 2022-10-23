@@ -31,14 +31,14 @@ func Router() *gin.Engine {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 
-	router.POST("users/login", controllers.UserLogin)
+	router.POST("users/login", userController.Login)
 	router.POST("users/register", userController.Register)
 
 	userAuthRequired := router.Group("/users")
 	userAuthRequired.Use(middlewares.Authentication())
 	{
-		userAuthRequired.PUT("/", controllers.UserUpdate)
-		userAuthRequired.DELETE("/", controllers.UserDelete)
+		userAuthRequired.PUT("/", userController.Update)
+		userAuthRequired.DELETE("/", userController.Delete)
 	}
 
 
