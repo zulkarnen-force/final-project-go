@@ -1,19 +1,19 @@
 package mappers
 
 import (
+	"final-project-go/dto"
 	"final-project-go/entity"
-	"final-project-go/models"
 
 	"github.com/jinzhu/copier"
 )
 
 
 
-func GetResponseComments(commentDatas *[]entity.Comment) *[]models.CommentResponse {
+func GetResponseComments(commentDatas *[]entity.Comment) *[]dto.CommentResponse {
 
-	var comments []models.CommentResponse
+	var comments []dto.CommentResponse
 	for _, data := range *commentDatas {
-		comment := new(models.CommentResponse)
+		comment := new(dto.CommentResponse)
 		copier.Copy(comment, &data)
 		comments = append(comments, *comment)
 	}
@@ -22,14 +22,14 @@ func GetResponseComments(commentDatas *[]entity.Comment) *[]models.CommentRespon
 
 }
 
-func GetCommentCreateResponse(comment entity.Comment) *models.CommentResponseCreate {
-	commentResponse := new(models.CommentResponseCreate)
+func GetCommentCreateResponse(comment entity.Comment) *dto.CommentResponseCreate {
+	commentResponse := new(dto.CommentResponseCreate)
 	copier.Copy(&commentResponse, &comment)
 	return commentResponse
 }
 
-func GetCommentUpdateResponse(comment entity.Comment) *models.CommentResponseUpdate {
-	commentResponse := new(models.CommentResponseUpdate)
+func GetCommentUpdateResponse(comment entity.Comment) *dto.CommentResponseUpdate {
+	commentResponse := new(dto.CommentResponseUpdate)
 	copier.Copy(&commentResponse, &comment)
 	return commentResponse
 }

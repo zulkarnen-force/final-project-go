@@ -1,10 +1,10 @@
 package controllers
 
 import (
+	"final-project-go/dto"
 	"final-project-go/entity"
 	"final-project-go/helpers"
 	"final-project-go/mappers"
-	"final-project-go/models"
 	"final-project-go/services"
 	"fmt"
 	"net/http"
@@ -40,7 +40,7 @@ func (c *CommentController) CreateComment(ctx *gin.Context) {
 	comment, err := c.Service.Update(comment)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{Message: err.Error()})
 		return
 	}
 
@@ -52,7 +52,10 @@ func (c *CommentController)  GetComments(ctx *gin.Context) {
 
 	comments, err := c.Service.GetAll()
 
-	_ = err
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{Message: "comments not found"})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, mappers.GetResponseComments(&comments))
 }
@@ -88,6 +91,7 @@ func (c *CommentController) UpdateComment(ctx *gin.Context) {
 			"message" : "failure updated data to database", 
 			"msg_dev" :err.Error(),
 		})
+		return
 	}
 
 	ctx.JSON(http.StatusCreated, comment)

@@ -1,13 +1,13 @@
 package mappers
 
 import (
+	"final-project-go/dto"
 	"final-project-go/entity"
-	"final-project-go/models"
 )
 
-type UserResponseRegister = models.UserResponseRegister
-type UserResponseUpdate = models.UserResponseUpdate
-type UserLoginResponse = models.UserLoginResponse
+type UserResponseRegister = dto.UserResponseRegister
+type UserResponseUpdate = dto.UserResponseUpdate
+type UserLoginResponse = dto.UserLoginResponse
 type User = entity.User
 
 func GetResponseRegister(user User) UserResponseRegister {

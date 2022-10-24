@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"errors"
 	"final-project-go/entity"
 
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"gorm.io/gorm"
 )
 
@@ -26,14 +29,22 @@ func NewUserRepository(database *gorm.DB) UserRepository {
 	}
 }
 
+var DuplicateError = errors.New("email atau username telah digunakan")
+
 func (repository *userRepositoryImpl) Insert(user entity.User) (entity.User, error) {
 	u := user
-	err := repository.DB.Create(&u).Error
+ 	err := repository.DB.Create(&u).Error
 
 	if err != nil {
-		return entity.User{}, err
+		if e, ok := err.(*pgconn.PgError); ok {
+			if e.Code == pgerrcode.UniqueViolation {
+				return u, DuplicateError
+			}
+		}
+		return u, err
 	}
 
+	
 	return u, nil
 }
 

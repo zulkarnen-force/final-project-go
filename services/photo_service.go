@@ -1,9 +1,9 @@
 package services
 
 import (
+	"final-project-go/dto"
 	"final-project-go/entity"
 	"final-project-go/mappers"
-	"final-project-go/models"
 	"final-project-go/repository"
 )
 
@@ -44,7 +44,7 @@ func (service *photoServiceImpl) UpdatePhotoByID(photo Photo, id int)  (interfac
 	p, err := service.PhotoRepository.GetPhotoByID(id)
 
 	if err != nil {
-		return models.ErrorResponse{
+		return dto.ErrorResponse{
 			Message: "error updated photo because " + err.Error(),
 			MessageDev: err.Error(),
 		}, err
@@ -53,7 +53,7 @@ func (service *photoServiceImpl) UpdatePhotoByID(photo Photo, id int)  (interfac
 	photo, err = service.PhotoRepository.Update(p)
 
 	if err != nil {
-		return models.ErrorResponse{
+		return dto.ErrorResponse{
 			Message: "error updated photo because " + err.Error(),
 			MessageDev: err.Error(),
 		}, err
@@ -67,7 +67,7 @@ func (service *photoServiceImpl) DeletePhotoByID(p Photo, id int) (interface{}, 
 	photo, err := service.PhotoRepository.DeletePhotoByID(id)
 
 	if err != nil {
-		return models.ErrorResponse{Message:"tidak bisa deleted", MessageDev:err.Error()}, err
+		return dto.ErrorResponse{Message:"tidak bisa deleted", MessageDev:err.Error()}, err
 	}
 
 	return photo, nil

@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"final-project-go/entity"
 	"final-project-go/helpers"
-	"final-project-go/models"
 	"final-project-go/services"
 	"net/http"
 	"strconv"
@@ -27,7 +27,7 @@ func (c *PhotoController) CreatePhoto(ctx *gin.Context) {
 	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
 	id := int(userData["id"].(float64))
 
-	var photo models.Photo = models.Photo{}
+	var photo entity.Photo = entity.Photo{}
 
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&photo)
@@ -64,7 +64,7 @@ func (c *PhotoController)  GetPhotos(ctx *gin.Context) {
 
 func (c *PhotoController) UpdatePhotoByID(ctx *gin.Context) {
 	
-	var photo models.Photo
+	var photo entity.Photo
 	contentType := helpers.GetContentType(ctx)
 
 	id, _ := ctx.Params.Get("photoId")
@@ -82,6 +82,7 @@ func (c *PhotoController) UpdatePhotoByID(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, response)
+		return
 	}
 	
 	ctx.JSON(http.StatusOK, response)
@@ -92,7 +93,7 @@ func (c *PhotoController) UpdatePhotoByID(ctx *gin.Context) {
 func (c *PhotoController) DeletePhoto(ctx *gin.Context) {
 	stringId, _ := ctx.Params.Get("photoId")
 	id, _ := strconv.Atoi(stringId)
-	var photo models.Photo
+	var photo entity.Photo
 
 	response, err := c.photoService.DeletePhotoByID(photo, id)
 

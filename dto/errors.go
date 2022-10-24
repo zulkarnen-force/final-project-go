@@ -1,4 +1,4 @@
-package models
+package dto
 
 type ErrorResponse struct {
 	Message    string `json:"message"`
@@ -10,7 +10,3 @@ type ErrorResponse struct {
 type SuccessResponse struct {
 	Message string `json:"message"`
 }
-
-// func (e *ValidationError) Error() {
-// 	return ValidationError{Message: ValidationError.Message}
-// }

@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"errors"
+	"final-project-go/dto"
 	"final-project-go/entity"
 	"final-project-go/helpers"
 	"final-project-go/mappers"
-	"final-project-go/models"
 	"final-project-go/services"
 	"fmt"
 	"net/http"
@@ -45,7 +45,6 @@ func (controller *UserController) Register(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":"bad request",
 			"message":err.Error(),
-			"type":errors.Is(err, gorm.ErrRegistered),
 		})
 		return
 	}
@@ -71,14 +70,14 @@ func (controller *UserController) Login(ctx *gin.Context) {
 	hp := user.Password 
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "invalid email"})
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid email"})
 		return
 	}
 
 	ok := helpers.ComparePassword(hp, usrinput.Password)
 
 	if ok == false {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
 			Message: "invalid password",
 		})
 		return

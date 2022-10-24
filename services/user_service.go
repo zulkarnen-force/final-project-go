@@ -2,9 +2,9 @@ package services
 
 import (
 	"errors"
+	"final-project-go/dto"
 	"final-project-go/entity"
 	"final-project-go/mappers"
-	"final-project-go/models"
 	"final-project-go/repository"
 	"fmt"
 	"net/http"
@@ -12,9 +12,9 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserResponseRegister = models.UserResponseRegister
-type UserResponseUpdate = models.UserResponseUpdate
-type UserLoginResponse = models.UserLoginResponse
+type UserResponseRegister = dto.UserResponseRegister
+type UserResponseUpdate = dto.UserResponseUpdate
+type UserLoginResponse = dto.UserLoginResponse
 
 type UserService interface {
 	Register(entity.User) (interface{}, error)
@@ -39,7 +39,7 @@ func (service *userServiceImpl) Register(user entity.User) (interface{}, error) 
 	user, err := service.UserRepository.Insert(user)
 
 	if err != nil {
-		return models.ErrorResponse{
+		return dto.ErrorResponse{
 			Message: "error register",
 			MessageDev: err.Error(),
 		}, err
@@ -74,7 +74,7 @@ func (service *userServiceImpl) Update(user entity.User, id int) (interface{}, e
 	usr, err := service.UserRepository.Update(user, id)
 
 	if err != nil {
-		return models.ErrorResponse{
+		return dto.ErrorResponse{
 			Message: "error updated photo because GetUserByID" + err.Error(),
 			MessageDev: err.Error(),
 		}, err
@@ -84,7 +84,7 @@ func (service *userServiceImpl) Update(user entity.User, id int) (interface{}, e
 	
 
 	if err != nil {
-		return models.ErrorResponse{
+		return dto.ErrorResponse{
 			Message: "error updated photo because " + err.Error(),
 			MessageDev: err.Error(),
 		}, err
@@ -96,7 +96,7 @@ func (service *userServiceImpl) Update(user entity.User, id int) (interface{}, e
 	
 
 	// if errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	return models.ErrorResponse{
+	// 	return dto.ErrorResponse{
 	// 		Message: fmt.Sprintf("error because with %d record not found", id),
 	// 		MessageDev: err.Error(),
 	// 		Code: http.StatusNotFound,
@@ -114,13 +114,13 @@ func (service *userServiceImpl) Delete(user entity.User, id int) (interface{}, e
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return models.ErrorResponse{
+			return dto.ErrorResponse{
 				Message: fmt.Sprintf("error because with %d record not found", id),
 				MessageDev: err.Error(),
 				Code: http.StatusNotFound,
 			}, err
 		} else {
-			return models.ErrorResponse{
+			return dto.ErrorResponse{
 				Message: fmt.Sprintf("error delete user with %d", id),
 				MessageDev: err.Error(),
 				Code: http.StatusNotFound,
@@ -130,7 +130,7 @@ func (service *userServiceImpl) Delete(user entity.User, id int) (interface{}, e
 
 	
 
-	response := models.SuccessResponse{Message: "Your account has been deleted successfully"}
+	response := dto.SuccessResponse{Message: "Your account has been deleted successfully"}
 	return response, nil
 
 }

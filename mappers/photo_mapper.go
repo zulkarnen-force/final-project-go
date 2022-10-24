@@ -1,13 +1,16 @@
 package mappers
 
-import "final-project-go/models"
+import (
+	"final-project-go/dto"
+	"final-project-go/entity"
+)
 
-type ResponseGetPhotos = models.ResponseGetPhotos
-type ResponsePhoto = models.ResponsePhoto
-type PhotoResponseUpdate = models.PhotoResponseUpdate
-type Photo = models.Photo
+type ResponseGetPhotos = dto.ResponseGetPhotos
+type ResponsePhoto = dto.ResponsePhoto
+type PhotoResponseUpdate = dto.PhotoResponseUpdate
+type Photo = entity.Photo
 
-func ResponsePhotoCreate(p models.Photo) ResponsePhoto {
+func ResponsePhotoCreate(p Photo) ResponsePhoto {
 	return ResponsePhoto{
 		ID:        p.ID,
 		Title:     p.Title,
@@ -43,7 +46,7 @@ func GetGetPhotoResponse(photosData *[]Photo) *[]ResponseGetPhotos {
 
 }
 
-func GetUpdatePhotoResponse(p models.Photo) *PhotoResponseUpdate {
+func GetUpdatePhotoResponse(p Photo) *PhotoResponseUpdate {
 
 	return &PhotoResponseUpdate{
 		ID:        p.ID,

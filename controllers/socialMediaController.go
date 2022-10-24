@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"errors"
+	"final-project-go/dto"
 	"final-project-go/entity"
 	"final-project-go/helpers"
 	"final-project-go/mappers"
-	"final-project-go/models"
 	"final-project-go/services"
 	"net/http"
 	"strconv"
@@ -44,7 +44,7 @@ func (c *SocialMediaController) CreateSocialMedia(ctx *gin.Context) {
 	sosialMedia, err := c.service.Create(socialMedia)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: "error", MessageDev: err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "error", MessageDev: err.Error()})
 		return 
 	}
 
@@ -57,7 +57,7 @@ func (c *SocialMediaController)  GetSocialMedias(ctx *gin.Context) {
 	sosialMedias, err := c.service.GetAll()
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: "error", MessageDev: err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "error", MessageDev: err.Error()})
 		return 
 	}
 	
@@ -77,10 +77,10 @@ func (c *SocialMediaController) UpdateSocialMedia(ctx *gin.Context) {
 	if err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, models.ErrorResponse{Message: "social media not found"})
+			ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{Message: "social media not found"})
 			return 
 		} else {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error()})
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{Message: err.Error()})
 			return
 		}
 	}

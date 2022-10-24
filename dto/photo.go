@@ -1,4 +1,4 @@
-package models
+package dto
 
 import (
 	"final-project-go/entity"

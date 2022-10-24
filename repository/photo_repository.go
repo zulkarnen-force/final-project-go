@@ -2,7 +2,6 @@ package repository
 
 import (
 	"final-project-go/entity"
-	"final-project-go/models"
 
 	"gorm.io/gorm"
 )
@@ -73,9 +72,9 @@ func (repository *photoRepositoryImpl) DeletePhoto(photo entity.Photo) (entity.P
 }
 
 func (repository *photoRepositoryImpl) GetPhotos() ([]entity.Photo, error) {
-	var photos []models.Photo
+	var photos []entity.Photo
 	
-	err := repository.DB.Model(&models.Photo{}).Preload("User").Find(&photos).Error
+	err := repository.DB.Model(&entity.Photo{}).Preload("User").Find(&photos).Error
 	
 	if err != nil {
 		return photos, err
@@ -86,7 +85,7 @@ func (repository *photoRepositoryImpl) GetPhotos() ([]entity.Photo, error) {
 
 
 func (repository *photoRepositoryImpl) GetPhotoByID(id int) (entity.Photo, error) {
-	var photo models.Photo
+	var photo entity.Photo
 	
 	err := repository.DB.First(&photo, id).Error
 	
