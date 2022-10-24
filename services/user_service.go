@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"final-project-go/entity"
-	"final-project-go/helpers"
 	"final-project-go/mappers"
 	"final-project-go/models"
 	"final-project-go/repository"
@@ -19,9 +18,10 @@ type UserLoginResponse = models.UserLoginResponse
 
 type UserService interface {
 	Register(entity.User) (interface{}, error)
-	Login(entity.User) (interface{}, error)
+	Login(entity.User) (entity.User, error)
 	Update(entity.User, int) (interface{}, error)
 	Delete(entity.User, int) (interface{}, error)
+	GetUserByID(int) (entity.User, error)
 }
 
 type userServiceImpl struct {
@@ -49,26 +49,24 @@ func (service *userServiceImpl) Register(user entity.User) (interface{}, error) 
 	return response, nil
 }
 
-func (service *userServiceImpl) Login(user entity.User) (interface{}, error) {
+func (service *userServiceImpl) Login(user entity.User) (entity.User, error) {
 
 	type FailLoginResponse struct {
 		Error string 
 		Message	string
 	}
+
 	user, err := service.UserRepository.GetOne(user)
 
 	if err != nil {
-		return FailLoginResponse{
-			Error: err.Error(),
-			Message: "invalid email or password",
-		}, err
+		return entity.User{}, err
 	}
 
-	token := helpers.GenerateToken(user.ID, user.Email)
+	
 
-	response := mappers.GetUserLoginResponse(token)
+	// response := mappers.GetUserLoginResponse(token)
 
-	return response, nil
+	return user, nil
 }
 
 func (service *userServiceImpl) Update(user entity.User, id int) (interface{}, error) {
@@ -140,15 +138,14 @@ func (service *userServiceImpl) Delete(user entity.User, id int) (interface{}, e
 
 
 
-// func (service *userServiceImpl) GetUserByID(id int) (interface{}, error) {
+func (service *userServiceImpl) GetUserByID(id int) (entity.User, error) {
 	
-// 	user, err := service.UserRepository.GetUserByID(id)
+	user, err := service.UserRepository.GetUserByID(id)
 
-// 	if err != nil {
-// 		return entity.User{}, err
-// 	}
+	if err != nil {
+		return entity.User{}, err
+	}
 
-// 	response := models.SuccessResponse{Message: "Your account has been deleted successfully"}
-// 	return response, nil
+	return user, nil
 
-// }
+}

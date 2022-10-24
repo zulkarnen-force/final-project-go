@@ -1,23 +1,38 @@
 package controllers
 
 import (
+	"errors"
+	"final-project-go/entity"
 	"final-project-go/helpers"
+	"final-project-go/mappers"
 	"final-project-go/models"
-	"fmt"
+	"final-project-go/services"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
 )
 
+type SocialMedia = entity.SocialMedia
 
-func (c *Controller) CreateSocialMedia(ctx *gin.Context) {
+
+type SocialMediaController struct {
+	service services.SocialMediaService
+}
+
+
+func NewSocialMediaController(service *services.SocialMediaService) SocialMediaController {
+	return SocialMediaController{service: *service}
+}
+
+func (c *SocialMediaController) CreateSocialMedia(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
 	id := int(userData["id"].(float64))
 
-	var socialMedia models.SocialMedia
+	var socialMedia SocialMedia
 	socialMedia.UserID = id
 
 	if contentType == appJson {
@@ -26,36 +41,48 @@ func (c *Controller) CreateSocialMedia(ctx *gin.Context) {
 		ctx.ShouldBind(&socialMedia)
 	}
 
-	c.DB.Create(&socialMedia)
+	sosialMedia, err := c.service.Create(socialMedia)
 
-	ctx.JSON(http.StatusCreated, socialMedia.GetResponseCreate())
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: "error", MessageDev: err.Error()})
+		return 
+	}
+
+	ctx.JSON(http.StatusCreated, mappers.GetResponseCreate(sosialMedia))
 }
 
 
-func (c *Controller)  GetSocialMedias(ctx *gin.Context) {
+func (c *SocialMediaController)  GetSocialMedias(ctx *gin.Context) {
 
-	var socialMedias *[]models.SocialMedia
+	sosialMedias, err := c.service.GetAll()
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: "error", MessageDev: err.Error()})
+		return 
+	}
 	
-	c.DB.Debug().Model(&models.SocialMedia{}).Preload("User").Find(&socialMedias)
-	
-	ctx.JSON(http.StatusOK, models.SocialMedia{}.ToResponseMedias(socialMedias))
+	ctx.JSON(http.StatusOK, mappers.ToResponseMedias(&sosialMedias))
 }
 
 
-func (c *Controller) UpdateSocialMedia(ctx *gin.Context) {
+func (c *SocialMediaController) UpdateSocialMedia(ctx *gin.Context) {
 	
-	var socialMedia models.SocialMedia = models.SocialMedia{}
 	contentType := helpers.GetContentType(ctx)
 
 	paramId, _ := ctx.Params.Get("id")
 	id, _ := strconv.Atoi(paramId)
 
-	if err := c.DB.First(&socialMedia, id).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": fmt.Sprintf("user with id %d not found", id),
-			"msg_dev": err.Error(),
-		})
-		return 		
+	socialMedia, err := c.service.GetByID(id)
+	
+	if err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, models.ErrorResponse{Message: "social media not found"})
+			return 
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.ErrorResponse{Message: err.Error()})
+			return
+		}
 	}
 
 	if contentType == appJson {
@@ -64,27 +91,28 @@ func (c *Controller) UpdateSocialMedia(ctx *gin.Context) {
 		ctx.ShouldBind(&socialMedia)
 	}
 
+	socialMedia, err = c.service.Update(socialMedia)
 
-	if err := c.DB.Save(&socialMedia).Error; err != nil {
+	if err != nil {
+		
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message" : "failure updated data to database", 
 			"msg_dev" :err.Error(),
 		})
+		
 		return
 	}
 
-	ctx.JSON(http.StatusOK, socialMedia.GetResponseUpdate())
+	ctx.JSON(http.StatusOK, mappers.GetSocialMediaUpdateResponse(socialMedia))
 
 }
 
 
-func (c *Controller) DeleteSocialMedia(ctx *gin.Context) {
+func (c *SocialMediaController) DeleteSocialMedia(ctx *gin.Context) {
 	paramId, _ := ctx.Params.Get("id")
 	id, _ := strconv.Atoi(paramId)
 
-	var socialMedia models.SocialMedia
-
-	err := c.DB.First(&socialMedia, id).Error 
+	socialMedia, err := c.service.GetByID(id)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, map[string]interface{}{
@@ -94,7 +122,9 @@ func (c *Controller) DeleteSocialMedia(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.DB.Delete(&socialMedia).Error; err != nil {
+	socialMedia, err = c.service.Delete(socialMedia)
+
+	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, map[string]interface{}{
 			"status":"failed to deleted ",
 			"msg_dev":err.Error(),

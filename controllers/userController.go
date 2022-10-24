@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"final-project-go/entity"
 	"final-project-go/helpers"
 	"final-project-go/mappers"
 	"final-project-go/models"
@@ -29,7 +30,7 @@ func NewUserController(userService *services.UserService) UserController {
 func (controller *UserController) Register(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 
-	user := models.User{}
+	user := entity.User{}
 
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&user)
@@ -40,9 +41,11 @@ func (controller *UserController) Register(ctx *gin.Context) {
 	response, err := controller.UserService.Register(user)
 
 	if err != nil {
+		
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error":"bad request",
 			"message":err.Error(),
+			"type":errors.Is(err, gorm.ErrRegistered),
 		})
 		return
 	}
@@ -54,22 +57,37 @@ func (controller *UserController) Register(ctx *gin.Context) {
 func (controller *UserController) Login(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 
-	user := models.User{}
+	usrinput := entity.User{}
+	
 
 	if contentType == appJson {
-		ctx.ShouldBindJSON(&user)
+		ctx.ShouldBindJSON(&usrinput)
 	} else {
-		ctx.ShouldBind(&user)
+		ctx.ShouldBind(&usrinput)
 	}
 	
-	response, err := controller.UserService.Login(user)
+	user, err := controller.UserService.Login(usrinput)
+	
+	hp := user.Password 
 
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, response)
+		ctx.JSON(http.StatusBadRequest, models.ErrorResponse{Message: "invalid email"})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, response)
+	ok := helpers.ComparePassword(hp, usrinput.Password)
+
+	if ok == false {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: "invalid password",
+		})
+		return
+	}
+
+
+	token := helpers.GenerateToken(user.ID, user.Email)
+
+	ctx.JSON(http.StatusCreated, gin.H{"token":token})
 }
 
 
@@ -78,9 +96,9 @@ func (controller *UserController) Update(ctx *gin.Context) {
 	userData := ctx.MustGet("userData").(jwt.MapClaims)
 	id := int(userData["id"].(float64))
 	_ = id
-	var user models.User
+	var user entity.User
 
-	// controller.UserService.Update(user, id)
+	user, err := controller.UserService.GetUserByID(id)
 
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&user)
@@ -92,19 +110,18 @@ func (controller *UserController) Update(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, response)
+		return
 	}
+
 	ctx.JSON(http.StatusCreated, response)
 
-	// if errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	ctx.AbortWithStatusJSON(http.StatusNotFound, response)
-	// }
 }
 
 
 func (controller *UserController) Delete(ctx *gin.Context) {
 	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
 	id := int(userData["id"].(float64))
-	var user models.User
+	var user entity.User
 
 	response, err := controller.UserService.Delete(user, id)
 
@@ -128,13 +145,13 @@ func (controller *UserController) Delete(ctx *gin.Context) {
 // @Tags         orders
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  models.User
+// @Success      200  {object}  entity.User
 // @Router       /orders [get]
 // func (c *UserController) Login(ctx *gin.Context) {
 	
 // 	contentType := helpers.GetContentType(ctx)
 
-// 	User := models.User{}
+// 	User := entity.User{}
 	
 
 // 	if contentType == appJson {
@@ -182,7 +199,7 @@ func (c *Controller)  UserRegister(ctx *gin.Context) {
 
 	contentType := helpers.GetContentType(ctx)
 
-	user := models.User{}
+	user := entity.User{}
 
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&user)
@@ -206,7 +223,7 @@ func (c *Controller)  UserRegister(ctx *gin.Context) {
 
 func (c *Controller) UserUpdate(ctx *gin.Context) {
 	
-	var UserUpdated models.User
+	var UserUpdated entity.User
 	contentType := helpers.GetContentType(ctx)
 	var userData jwt.MapClaims = ctx.MustGet("userData").(jwt.MapClaims)
 	var userID int = int(userData["id"].(float64))
@@ -242,7 +259,7 @@ func (c *Controller) UserUpdate(ctx *gin.Context) {
 func (c *Controller) UserDelete(ctx *gin.Context) {
 	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
 	id := int(userData["id"].(float64))
-	var user models.User
+	var user entity.User
 
 	err := c.DB.First(&user, id).Error 
 

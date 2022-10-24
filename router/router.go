@@ -28,9 +28,18 @@ func Router() *gin.Engine {
 	photoService := services.NewPhotoService(&photoRepository)
 	photoController := controllers.NewPhotoController(&photoService)
 
-	controllers := controllers.Controller{
-		DB: db,
-	}
+	
+	commentRepository := repository.NewCommentRepository(db)
+	commentService := services.NewCommentService(&commentRepository)
+	commentController := controllers.NewCommentController(&commentService)
+
+	socialMediaRepository := repository.NewSocialMediaRepository(db)
+	socialMediaService := services.NewSocialMediaService(&socialMediaRepository)
+	socialMediaController := controllers.NewSocialMediaController(&socialMediaService)
+
+	// controllers := controllers.Controller{
+	// 	DB: db,
+	// }
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -58,20 +67,20 @@ func Router() *gin.Engine {
 	commentRouters := router.Group("/comments")
 	commentRouters.Use(middlewares.Authentication())
 	{
-		commentRouters.POST("/", controllers.CreateComment)
-		commentRouters.GET("/", controllers.GetComments)
-		commentRouters.PUT("/:commentID", controllers.UpdateComment)
-		commentRouters.DELETE("/:commentID", controllers.DeleteComment)
+		commentRouters.POST("/", commentController.CreateComment)
+		commentRouters.GET("/", commentController.GetComments)
+		commentRouters.PUT("/:commentID", commentController.UpdateComment)
+		commentRouters.DELETE("/:commentID", commentController.DeleteComment)
 	}
 
 
 	socialMediaRouters := router.Group("/socialmedias")
 	socialMediaRouters.Use(middlewares.Authentication())
 	{
-		socialMediaRouters.POST("/", controllers.CreateSocialMedia)
-		socialMediaRouters.GET("/", controllers.GetSocialMedias)
-		socialMediaRouters.PUT("/:id", controllers.UpdateSocialMedia)
-		socialMediaRouters.DELETE("/:id", controllers.DeleteSocialMedia)
+		socialMediaRouters.POST("/", socialMediaController.CreateSocialMedia)
+		socialMediaRouters.GET("/", socialMediaController.GetSocialMedias)
+		socialMediaRouters.PUT("/:id", socialMediaController.UpdateSocialMedia)
+		socialMediaRouters.DELETE("/:id", socialMediaController.DeleteSocialMedia)
 	}
 
 	return router
