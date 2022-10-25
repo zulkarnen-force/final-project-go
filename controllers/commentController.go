@@ -22,7 +22,17 @@ func NewCommentController(s *services.CommentService) CommentController {
 	return CommentController{Service: *s}
 }
 
-
+// CreateComment godoc
+// @Summary      Create Comment
+// @Description   Create Comment user
+// @Tags         Comments
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  dto.SuccessResponse
+// @Failure      404  {object}  dto.ErrorResponse
+// @Failure      500  {object}  dto.CommentResponseCreate
+// @Router       /comments/ [post]
+// @Security ApiKeyAuth
 func (c *CommentController) CreateComment(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 	userData := ctx.MustGet("userData").(jwt.MapClaims)
@@ -49,13 +59,13 @@ func (c *CommentController) CreateComment(ctx *gin.Context) {
 
 
 // GetComments godoc
-// @Summary      Show all comment
+// @Summary      Show all comments
 // @Description  get comments data
-// @Tags         comment
+// @Tags         Comments
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  []dto.CommentResponse
-// @Router       /comments [get]
+// @Router       /comments/ [get]
 // @Security ApiKeyAuth
 func (c *CommentController)  GetComments(ctx *gin.Context) {
 
@@ -69,7 +79,18 @@ func (c *CommentController)  GetComments(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, mappers.GetResponseComments(&comments))
 }
 
-
+// UpdateComment godoc
+// @Summary      Update Comment User with ID
+// @Description   Update Comment user
+// @Param        id   path      int  true  "Comment ID"
+// @Tags         Comments
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  dto.CommentResponseUpdate
+// @Failure      404  {object}  dto.ErrorResponse
+// @Failure      500  {object}  dto.ErrorResponse
+// @Router       /comments/{id} [put]
+// @Security ApiKeyAuth
 func (c *CommentController) UpdateComment(ctx *gin.Context) {
 	
 	contentType := helpers.GetContentType(ctx)
@@ -101,11 +122,22 @@ func (c *CommentController) UpdateComment(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, comment)
+	ctx.JSON(http.StatusCreated, mappers.GetCommentUpdateResponse(comment))
 
 }
 
-
+// DeleteComment godoc
+// @Summary      Delete Comment User with ID
+// @Description   Delete Comment user
+// @Param        id   path      int  true  "Comment ID"
+// @Tags         Comments
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  dto.SuccessResponse
+// @Failure      404  {object}  dto.ErrorResponse
+// @Failure      500  {object}  dto.ErrorResponse
+// @Router       /comments/{id} [delete]
+// @Security ApiKeyAuth
 func (c *CommentController) DeleteComment(ctx *gin.Context) {
 	ParamID, _ := ctx.Params.Get("commentID")
 	id, _ := strconv.Atoi(ParamID)

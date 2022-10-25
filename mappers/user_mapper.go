@@ -7,7 +7,7 @@ import (
 
 type UserResponseRegister = dto.UserResponseRegister
 type UserResponseUpdate = dto.UserResponseUpdate
-type UserLoginResponse = dto.UserLoginResponse
+type UserLoginResponse = dto.TokenResponse
 type User = entity.User
 
 func GetResponseRegister(user User) UserResponseRegister {

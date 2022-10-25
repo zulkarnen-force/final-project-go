@@ -1,27 +1,22 @@
 package services
 
 import (
-	"errors"
 	"final-project-go/dto"
 	"final-project-go/entity"
-	"final-project-go/mappers"
 	"final-project-go/repository"
-	"fmt"
-	"net/http"
-
-	"gorm.io/gorm"
 )
 
 type UserResponseRegister = dto.UserResponseRegister
 type UserResponseUpdate = dto.UserResponseUpdate
-type UserLoginResponse = dto.UserLoginResponse
+type User = entity.User
+
 
 type UserService interface {
-	Register(entity.User) (interface{}, error)
-	Login(entity.User) (entity.User, error)
-	Update(entity.User, int) (interface{}, error)
-	Delete(entity.User, int) (interface{}, error)
-	GetUserByID(int) (entity.User, error)
+	Register(User) (User, error)
+	Login(User) (User, error)
+	Update(User, int) (User, error)
+	Delete(User, int) (User, error)
+	GetUserByID(int) (User, error)
 }
 
 type userServiceImpl struct {
@@ -35,115 +30,64 @@ func NewUserService(userRepository *repository.UserRepository) UserService {
 	}
 }
 
-func (service *userServiceImpl) Register(user entity.User) (interface{}, error) {
-	user, err := service.UserRepository.Insert(user)
-
-	if err != nil {
-		return dto.ErrorResponse{
-			Message: "error register",
-			MessageDev: err.Error(),
-		}, err
-	}
-
-	response := mappers.GetResponseRegister(user)
-	return response, nil
-}
-
-func (service *userServiceImpl) Login(user entity.User) (entity.User, error) {
-
-	type FailLoginResponse struct {
-		Error string 
-		Message	string
-	}
-
-	user, err := service.UserRepository.GetOne(user)
-
-	if err != nil {
-		return entity.User{}, err
-	}
-
+func (service *userServiceImpl) Register(user entity.User) (User, error) {
 	
+	user, err := service.UserRepository.Create(user)
 
-	// response := mappers.GetUserLoginResponse(token)
+	if err != nil {
+		return user, err
+	}
 
 	return user, nil
 }
 
-func (service *userServiceImpl) Update(user entity.User, id int) (interface{}, error) {
+func (service *userServiceImpl) Login(user User) (User, error) {
+
+	user, err := service.UserRepository.GetUser(user)
+
+	if err != nil {
+		return User{}, err
+	}
+
+	return user, nil
+}
+
+
+func (service *userServiceImpl) Update(user User, id int) (User, error) {
 	
 	usr, err := service.UserRepository.Update(user, id)
 
 	if err != nil {
-		return dto.ErrorResponse{
-			Message: "error updated photo because GetUserByID" + err.Error(),
-			MessageDev: err.Error(),
-		}, err
+		return usr, err
 	}
 
-
+	return usr, nil
 	
-
-	if err != nil {
-		return dto.ErrorResponse{
-			Message: "error updated photo because " + err.Error(),
-			MessageDev: err.Error(),
-		}, err
-	}
-
-	response := mappers.GetResponseUpdate(usr)
-
-	return response, nil
-	
-
-	// if errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	return dto.ErrorResponse{
-	// 		Message: fmt.Sprintf("error because with %d record not found", id),
-	// 		MessageDev: err.Error(),
-	// 		Code: http.StatusNotFound,
-	// 	}, err
-	// }
-
-
 }
 
 
-func (service *userServiceImpl) Delete(user entity.User, id int) (interface{}, error) {
+func (service *userServiceImpl) Delete(user User, id int) (User, error) {
 	
-	_, err := service.UserRepository.Delete(user, id)
+	user, err := service.UserRepository.Delete(user, id)
 
 
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return dto.ErrorResponse{
-				Message: fmt.Sprintf("error because with %d record not found", id),
-				MessageDev: err.Error(),
-				Code: http.StatusNotFound,
-			}, err
-		} else {
-			return dto.ErrorResponse{
-				Message: fmt.Sprintf("error delete user with %d", id),
-				MessageDev: err.Error(),
-				Code: http.StatusNotFound,
-			}, err
-		}
+		return user, err
 	}
 
-	
-
-	response := dto.SuccessResponse{Message: "Your account has been deleted successfully"}
-	return response, nil
+	return user, err
 
 }
 
 
 
 
-func (service *userServiceImpl) GetUserByID(id int) (entity.User, error) {
+func (service *userServiceImpl) GetUserByID(id int) (User, error) {
 	
-	user, err := service.UserRepository.GetUserByID(id)
+	user, err := service.UserRepository.GetByID(id)
 
 	if err != nil {
-		return entity.User{}, err
+		return User{}, err
 	}
 
 	return user, nil

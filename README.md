@@ -8,12 +8,7 @@ Open endpoints require no Authentication.
 
 * Register : `POST /users/register/`
 * Login  : `POST /users/login/`
-
-
-## Endpoints that require Authentication
-
-Closed endpoints require a valid Token to be included in the header of the
-request. A Token can be acquired from the Login view above.
+* Documentation  : `GET /docs/index.html`
 
 
 ## Endpoints that require Authentication
@@ -33,14 +28,15 @@ Token is provided with the request:
 
 ### Photos related
 
-Endpoints for viewing and manipulating the Photos that the Authenticated User
+Endpoints for viewing and manipulating the Photo that the Authenticated User
 has permissions to access.
 
 
-* Create Photo `POST /photos/`
-* Show Photos `PUT /photos/`
-* Update a Photo `PUT /photos/:id/`
-* Delete An Photo `DELETE /photos/:id/`
+* Create Comment `POST /photos/`
+* Show Photos `GET /photos/`
+* Update a Comment `PUT /photos/:id/`
+* Delete An Account `DELETE /photos/:id/`
+
 
 
 ### Comments related
@@ -50,8 +46,21 @@ has permissions to access.
 
 
 * Create Comment `POST /comments/`
-* Show Comments `PUT /comments/`
+* Show Comments `GET /comments/`
 * Update a Comment `PUT /comments/:id/`
-* Delete An Account `DELETE /comment/:id/`
+* Delete An Comment `DELETE /comments/:id/`
+
+
+### Social Media's related
+
+Endpoints for viewing and manipulating the Social Media's that the Authenticated User
+has permissions to access.
+
+
+* Create Social Media `POST /socialmedias/`
+* Show Social Medias `GET /socialmedias/`
+* Update a Social Media `PUT /socialmedias/:id/`
+* Delete An Social Media `DELETE /socialmedias/:id/`
+
 
 

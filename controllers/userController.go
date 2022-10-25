@@ -7,7 +7,6 @@ import (
 	"final-project-go/helpers"
 	"final-project-go/mappers"
 	"final-project-go/services"
-	"fmt"
 	"net/http"
 
 	"gorm.io/gorm"
@@ -27,7 +26,15 @@ func NewUserController(userService *services.UserService) UserController {
 }
 
 
-
+// Create User Account godoc
+// @Summary      Create user account
+// @Description  create user account
+// @Tags         users
+// @Param        account  body       dto.UserRegisterInput true  "Add account"
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  dto.UserResponseRegister
+// @Router       /users/register/ [post]
 func (controller *UserController) Register(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 
@@ -39,43 +46,50 @@ func (controller *UserController) Register(ctx *gin.Context) {
 		ctx.ShouldBind(&user)
 	}
 	
-	response, err := controller.UserService.Register(user)
+	user, err := controller.UserService.Register(user)
 
 	if err != nil {
-		
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"bad request",
-			"message":err.Error(),
+		ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{
+			Message: "error register user because " + err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, response)
+	ctx.JSON(http.StatusCreated, mappers.GetResponseRegister(user))
 }
 
 
+
+// Login godoc
+// @Summary      Authentication user
+// @Description  authentication and return JWT token 
+// @Tags         users
+// @Accept       json
+// @Param        account  body      dto.UserLoginInput  true  "Auth account"
+// @Produce      json
+// @Success      200  {object}  dto.TokenResponse
+// @Router       /users/login/ [post]
+// @Security ApiKeyAuth
 func (controller *UserController) Login(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
-
-	usrinput := entity.User{}
-	
+	user := entity.User{}
 
 	if contentType == appJson {
-		ctx.ShouldBindJSON(&usrinput)
+		ctx.ShouldBindJSON(&user)
 	} else {
-		ctx.ShouldBind(&usrinput)
+		ctx.ShouldBind(&user)
 	}
-	
-	user, err := controller.UserService.Login(usrinput)
-	
-	hp := user.Password 
 
+	hp := user.Password 
+	
+	user, err := controller.UserService.Login(user)
+	
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "invalid email"})
+		ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: "error login because " + err.Error()})
 		return
 	}
 
-	ok := helpers.ComparePassword(hp, usrinput.Password)
+	ok := helpers.ComparePassword(user.Password, hp)
 
 	if ok == false {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
@@ -87,10 +101,20 @@ func (controller *UserController) Login(ctx *gin.Context) {
 
 	token := helpers.GenerateToken(user.ID, user.Email)
 
-	ctx.JSON(http.StatusCreated, gin.H{"token":token})
+	ctx.JSON(http.StatusCreated, dto.TokenResponse{Token : token})
 }
 
-
+// UpdateUser godoc
+// @Summary      Update user data
+// @Description  Update user data 
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  dto.UserResponseUpdate
+// @Failure      404  {object}  dto.ErrorResponse
+// @Failure      500  {object}  dto.ErrorResponse
+// @Router       /users/  [put]
+// @Security ApiKeyAuth
 func (controller *UserController) Update(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 	userData := ctx.MustGet("userData").(jwt.MapClaims)
@@ -100,121 +124,60 @@ func (controller *UserController) Update(ctx *gin.Context) {
 
 	user, err := controller.UserService.GetUserByID(id)
 
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{
+			Message: "error update user because " + err.Error(),
+		})
+		return
+	}
+
 	if contentType == appJson {
 		ctx.ShouldBindJSON(&user)
 	} else {
 		ctx.ShouldBind(&user)
 	}
 
-	response, err := controller.UserService.Update(user, id)
+	user, err = controller.UserService.Update(user, id)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, response)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Message: "error update user because " + err.Error(),
+		})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, response)
+	ctx.JSON(http.StatusCreated, mappers.GetResponseUpdate(user))
 
 }
 
-
+// DeleteUser godoc
+// @Summary      Delete current User
+// @Description   Delete current User
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  dto.SuccessResponse
+// @Failure      404  {object}  dto.ErrorResponse
+// @Failure      500  {object}  dto.ErrorResponse
+// @Router       /users/  [delete]
+// @Security ApiKeyAuth
 func (controller *UserController) Delete(ctx *gin.Context) {
 	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
 	id := int(userData["id"].(float64))
 	var user entity.User
 
-	response, err := controller.UserService.Delete(user, id)
+	user, err := controller.UserService.Delete(user, id)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, response)
+			ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{Message:  "error update user because " + err.Error()})
 			return
 		} else {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, response)
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{Message:  "error update user because " + err.Error()})
 			return
 		}
 	}
 
 
-	ctx.JSON(http.StatusOK, response)
-}
-
-func (c *Controller)  UserRegister(ctx *gin.Context) {
-
-	contentType := helpers.GetContentType(ctx)
-
-	user := entity.User{}
-
-	if contentType == appJson {
-		ctx.ShouldBindJSON(&user)
-	} else {
-		ctx.ShouldBind(&user)
-	}
-	
-	err := c.DB.Debug().Create(&user).Error
-
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error":"bad request",
-			"message":err.Error(),
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, mappers.GetResponseRegister(user))
-}
-
-
-func (c *Controller) UserUpdate(ctx *gin.Context) {
-	
-	var UserUpdated entity.User
-	contentType := helpers.GetContentType(ctx)
-	var userData jwt.MapClaims = ctx.MustGet("userData").(jwt.MapClaims)
-	var userID int = int(userData["id"].(float64))
-
-	if err := c.DB.First(&UserUpdated, userID).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": fmt.Sprintf("user with id %d not found", userID),
-			"msg_dev": err.Error(),
-		})
-		return 		
-	}
-
-	if contentType == appJson {
-		ctx.ShouldBindJSON(&UserUpdated)
-	} else {
-		ctx.ShouldBind(&UserUpdated)
-	}
-
-	if err := c.DB.Save(&UserUpdated).Error; err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message" : "failure updated data to database", 
-			"msg_dev" :err.Error(),
-		})
-	}
-
-	ctx.JSON(http.StatusOK,
-		mappers.GetResponseUpdate(UserUpdated),
-	)
-
-}
-
-
-func (c *Controller) UserDelete(ctx *gin.Context) {
-	userData := ctx.MustGet("userData").(jwt.MapClaims) // get info from JWT payload 
-	id := int(userData["id"].(float64))
-	var user entity.User
-
-	err := c.DB.First(&user, id).Error 
-
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, map[string]interface{}{
-			"status":"not found",
-			"msg_dev":err.Error(),
-		})
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Your account has been successfully deleted",
-	})
+	ctx.JSON(http.StatusOK, dto.SuccessResponse{Message: "Your user has been successfully deleted"})
 }

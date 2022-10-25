@@ -1,9 +1,7 @@
 package services
 
 import (
-	"final-project-go/dto"
 	"final-project-go/entity"
-	"final-project-go/mappers"
 	"final-project-go/repository"
 )
 
@@ -13,11 +11,11 @@ type Photo = entity.Photo
 
 
 type PhotoService interface {
-	Create(Photo) (interface{}, error)
-	UpdatePhotoByID(Photo, int) (interface{}, error)
-	DeletePhotoByID(Photo, int) (interface{}, error)
-	GetAll() (interface{}, error)
-	GetOne(int)
+	Create(Photo) (Photo, error)
+	GetAll() ([]Photo, error)
+	GetOne(int) (Photo, error)
+	Update(Photo) (Photo, error) 
+	Delete(Photo) (Photo, error) 
 }
 
 type photoServiceImpl struct {
@@ -29,68 +27,57 @@ func NewPhotoService(photoRepo *PhotoRepository) PhotoService {
 	return &photoServiceImpl{PhotoRepository: *photoRepo}
 }
 
-func (service *photoServiceImpl) Create(p Photo) (interface{}, error) {
+func (service *photoServiceImpl) Create(p Photo) (Photo, error) {
 	photo, err := service.PhotoRepository.CreatePhoto(p)
 
 	if err != nil {
-		return map[string]interface{}{"message":"error", "dev":err.Error()}, err
-	}
-
-	return mappers.ResponsePhotoCreate(photo), nil
-}
-
-func (service *photoServiceImpl) UpdatePhotoByID(photo Photo, id int)  (interface{}, error) {
-	p := photo
-	p, err := service.PhotoRepository.GetPhotoByID(id)
-
-	if err != nil {
-		return dto.ErrorResponse{
-			Message: "error updated photo because " + err.Error(),
-			MessageDev: err.Error(),
-		}, err
-	}
-
-	photo, err = service.PhotoRepository.Update(p)
-
-	if err != nil {
-		return dto.ErrorResponse{
-			Message: "error updated photo because " + err.Error(),
-			MessageDev: err.Error(),
-		}, err
-	}
-
-	return mappers.GetUpdatePhotoResponse(photo), nil
-}
-
-func (service *photoServiceImpl) DeletePhotoByID(p Photo, id int) (interface{}, error) {
-
-	photo, err := service.PhotoRepository.DeletePhotoByID(id)
-
-	if err != nil {
-		return dto.ErrorResponse{Message:"tidak bisa deleted", MessageDev:err.Error()}, err
+		return photo, err
 	}
 
 	return photo, nil
-
 }
 
 
-func (service *photoServiceImpl) GetAll() (interface{}, error){
+func (service *photoServiceImpl) GetAll() ([]Photo, error){
 	photos, err := service.PhotoRepository.GetPhotos()
 
 	if err != nil {
-		return map[string]interface{}{"message":"not data photos"}, err
+		return photos, err
 	}
 
-	res := mappers.GetGetPhotoResponse(&photos)
-	return res, nil
+	return photos, nil
 
 }
 
-func (service *photoServiceImpl) GetOne(id int) {
-	
+
+
+func (service *photoServiceImpl) GetOne(id int) (Photo, error) { 
+	photo, err := service.PhotoRepository.GetPhotoByID(id)
+
+	if err != nil {
+		return photo, err
+	}
+
+	return photo, nil
 }
 
-// func (service *photoServiceImpl) UpdatePhoto(p Photo) {
-// 	res, photo := service.PhotoRepository.Update(p)
-// }
+
+func (service *photoServiceImpl) Update(p Photo) (Photo, error) { 
+	photo, err := service.PhotoRepository.Save(p)
+
+	if err != nil {
+		return photo, err
+	}
+
+	return photo, nil
+}
+
+func (service *photoServiceImpl) Delete(p Photo) (Photo, error) { 
+	photo, err := service.PhotoRepository.DeletePhoto(p)
+
+	if err != nil {
+		return photo, err
+	}
+
+	return photo, nil
+}

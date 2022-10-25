@@ -27,6 +27,12 @@ func NewSocialMediaService(repo *repository.SocialMediaRepository) SocialMediaSe
 
 func (service *socialMediaServiceImpl) Create(sosmed SocialMedia)  (SocialMedia, error) {
 	sosmed, err := service.repository.Create(sosmed)
+
+	
+	if err != nil {
+		return sosmed, err
+	}
+
 	return sosmed, err
 }
 
@@ -34,12 +40,22 @@ func (service *socialMediaServiceImpl) Create(sosmed SocialMedia)  (SocialMedia,
 
 func (service *socialMediaServiceImpl) Update(sosmed SocialMedia)  (SocialMedia, error) {
 	sosmed, err := service.repository.Save(sosmed)
+
+	if err != nil {
+		return sosmed, err
+	}
+
 	return sosmed, err
 }
 
 func (service *socialMediaServiceImpl) GetByID(id int)  (SocialMedia, error) {
 	sosmed, err := service.repository.GetOneByID(id)
-	return sosmed, err
+
+	if err != nil {
+		return sosmed, err
+	}
+
+	return sosmed, nil
 }
 
 
@@ -52,5 +68,9 @@ func (service *socialMediaServiceImpl) Delete(sosmed SocialMedia)  (SocialMedia,
 
 func (service *socialMediaServiceImpl) GetAll()  ([]SocialMedia, error) {
 	sosmeds, err := service.repository.GetAll()
-	return sosmeds, err
+
+	if err != nil {
+		return sosmeds, err
+	}
+	return sosmeds, nil
 }

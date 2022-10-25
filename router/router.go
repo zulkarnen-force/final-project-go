@@ -37,11 +37,7 @@ func Router() *gin.Engine {
 	socialMediaService := services.NewSocialMediaService(&socialMediaRepository)
 	socialMediaController := controllers.NewSocialMediaController(&socialMediaService)
 
-	// controllers := controllers.Controller{
-	// 	DB: db,
-	// }
-
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 
 	router.POST("users/login", userController.Login)

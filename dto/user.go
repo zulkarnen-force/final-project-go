@@ -21,6 +21,19 @@ type UserResponseUpdate struct {
 }
 
 
-type UserLoginResponse struct {
+type TokenResponse struct {
 	Token string `json:"token"`
+}
+
+
+type UserRegisterInput struct {
+	Username  string    `json:"username,omitempty"`
+	Email     string    `json:"email,omitempty"` 
+	Password  string 	`json:"password,omitempty"`
+	Age       int       `json:"age,omitempty"` 
+}
+
+type UserLoginInput struct {
+	Email     string    `json:"email,omitempty"` 
+	Password  string 	`json:"password,omitempty"`
 }

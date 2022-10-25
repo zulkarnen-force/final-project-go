@@ -10,11 +10,11 @@ import (
 )
 
 type UserRepository interface {
-	Insert(entity.User) (entity.User, error)
+	Create(entity.User) (entity.User, error)
 	Update(entity.User, int)  (entity.User, error)
 	Delete(entity.User, int)  (entity.User, error)
-	GetOne(entity.User) (entity.User, error)
-	GetUserByID(int) (entity.User, error) 
+	GetUser(entity.User) (entity.User, error)
+	GetByID(int) (entity.User, error) 
 }
 
 
@@ -31,7 +31,7 @@ func NewUserRepository(database *gorm.DB) UserRepository {
 
 var DuplicateError = errors.New("email atau username telah digunakan")
 
-func (repository *userRepositoryImpl) Insert(user entity.User) (entity.User, error) {
+func (repository *userRepositoryImpl) Create(user entity.User) (entity.User, error) {
 	u := user
  	err := repository.DB.Create(&u).Error
 
@@ -48,7 +48,7 @@ func (repository *userRepositoryImpl) Insert(user entity.User) (entity.User, err
 	return u, nil
 }
 
-func (repository *userRepositoryImpl) GetOne(user entity.User) (entity.User, error) {
+func (repository *userRepositoryImpl) GetUser(user entity.User) (entity.User, error) {
 	u := entity.User{}
 	err := repository.DB.Where("email = ?", user.Email).Take(&u).Error
 	
@@ -86,7 +86,7 @@ func (repository *userRepositoryImpl) Delete(user entity.User, id int) (entity.U
 }
 
 
-func (repository *userRepositoryImpl) GetUserByID(id int) (entity.User, error) {
+func (repository *userRepositoryImpl) GetByID(id int) (entity.User, error) {
 	usr := entity.User{}
 
 	err := repository.DB.First(&usr, id).Error
