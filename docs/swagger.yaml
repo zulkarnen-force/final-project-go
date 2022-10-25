@@ -1,19 +1,43 @@
 basePath: /
 definitions:
-  models.User:
+  dto.CommentResponse:
     properties:
-      age:
-        type: integer
       created_at:
         type: string
+      id:
+        type: integer
+      message:
+        type: string
+      photo:
+        $ref: '#/definitions/dto.photoResponse'
+      photo_id:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/dto.userResponse'
+      user_id:
+        type: integer
+    type: object
+  dto.photoResponse:
+    properties:
+      caption:
+        type: string
+      id:
+        type: integer
+      photo_url:
+        type: string
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  dto.userResponse:
+    properties:
       email:
         type: string
       id:
         type: integer
-      password:
-        type: string
-      updated_at:
-        type: string
       username:
         type: string
     type: object
@@ -31,22 +55,28 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /orders:
+  /comments:
     get:
       consumes:
       - application/json
-      description: get orders data
+      description: get comments data
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.User'
-      summary: Show an orders
+            items:
+              $ref: '#/definitions/dto.CommentResponse'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Show all comment
       tags:
-      - orders
+      - comment
 securityDefinitions:
-  BasicAuth:
-    type: basic
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

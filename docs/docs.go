@@ -25,9 +25,14 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/orders": {
+        "/comments": {
             "get": {
-                "description": "get orders data",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "get comments data",
                 "consumes": [
                     "application/json"
                 ],
@@ -35,14 +40,17 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "orders"
+                    "comment"
                 ],
-                "summary": "Show an orders",
+                "summary": "Show all comment",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.CommentResponse"
+                            }
                         }
                     }
                 }
@@ -50,26 +58,63 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.User": {
+        "dto.CommentResponse": {
             "type": "object",
             "properties": {
-                "age": {
-                    "type": "integer"
-                },
                 "created_at": {
-                    "type": "string"
-                },
-                "email": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "password": {
+                "message": {
                     "type": "string"
+                },
+                "photo": {
+                    "$ref": "#/definitions/dto.photoResponse"
+                },
+                "photo_id": {
+                    "type": "integer"
                 },
                 "updated_at": {
                     "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/dto.userResponse"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.photoResponse": {
+            "type": "object",
+            "properties": {
+                "caption": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "photo_url": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.userResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
@@ -78,8 +123,10 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

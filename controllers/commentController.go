@@ -48,6 +48,15 @@ func (c *CommentController) CreateComment(ctx *gin.Context) {
 }
 
 
+// GetComments godoc
+// @Summary      Show all comment
+// @Description  get comments data
+// @Tags         comment
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  []dto.CommentResponse
+// @Router       /comments [get]
+// @Security ApiKeyAuth
 func (c *CommentController)  GetComments(ctx *gin.Context) {
 
 	comments, err := c.Service.GetAll()

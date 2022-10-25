@@ -19,10 +19,15 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
+// @securityDefinitions.apikey  ApiKeyAuth
+// @in                          header
+// @name                        Authorization
+// @description					Description for what is this security definition being used
+// @tokenUrl                    http://localhost:8080/users/login
+
 // @host      localhost:8080
 // @BasePath  /
 
-// @securityDefinitions.basic  BasicAuth
 func main() {
 	r := router.Router()
 	databases.Migrate()

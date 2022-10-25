@@ -27,6 +27,7 @@ func NewUserController(userService *services.UserService) UserController {
 }
 
 
+
 func (controller *UserController) Register(ctx *gin.Context) {
 	contentType := helpers.GetContentType(ctx)
 
@@ -137,62 +138,6 @@ func (controller *UserController) Delete(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, response)
 }
-
-// GetOrders godoc
-// @Summary      Show an orders
-// @Description  get orders data
-// @Tags         orders
-// @Accept       json
-// @Produce      json
-// @Success      200  {object}  entity.User
-// @Router       /orders [get]
-// func (c *UserController) Login(ctx *gin.Context) {
-	
-// 	contentType := helpers.GetContentType(ctx)
-
-// 	User := entity.User{}
-	
-
-// 	if contentType == appJson {
-// 		ctx.ShouldBindJSON(&User)
-// 	} else {
-// 		ctx.ShouldBind(&User)
-// 	}
-
-// 	password := User.Password
-// 	_ = password
-
-	// err := c.DB.Debug().Where("email = ?", User.Email).Take(&User).Error
-	
-	// ctx.JSON(200, &User)
-
-
-	// if err != nil {
-	// 	ctx.JSON(http.StatusUnauthorized, gin.H{
-	// 		"error":"unauthorized",
-	// 		"message":"invalid email/password",
-	// 	})
-	// 	return
-	// }
-
-	// isValidPassword := helpers.ComparePassword([]byte(User.Password), []byte(password))
-
-	// if !isValidPassword {
-	// 	ctx.JSON(http.StatusUnauthorized, gin.H{
-	// 		"error":"unauthorized",
-	// 		"message":"invalid email/password",
-	// 	})
-	// 	return
-	// }
-
-	// token := helpers.GenerateToken(User.ID, User.Email)
-
-	// ctx.JSON(http.StatusOK, gin.H{
-	// 	"token": token,
-
-	// })
-// }
-
 
 func (c *Controller)  UserRegister(ctx *gin.Context) {
 
