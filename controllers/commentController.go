@@ -71,9 +71,8 @@ func (c *CommentController) UpdateComment(ctx *gin.Context) {
 	comment, err := c.Service.GetByID(id)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": fmt.Sprintf("user with id %d not found", id),
-			"msg_dev": err.Error(),
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, dto.ErrorResponse{
+			Message: "comment not found",
 		})
 		return 		
 	}
@@ -87,9 +86,8 @@ func (c *CommentController) UpdateComment(ctx *gin.Context) {
 	comment, err = c.Service.Update(comment)
 	
 	 if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"message" : "failure updated data to database", 
-			"msg_dev" :err.Error(),
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Message: fmt.Sprintf("failure updated data because %s", err.Error()),
 		})
 		return
 	}
@@ -106,9 +104,8 @@ func (c *CommentController) DeleteComment(ctx *gin.Context) {
 	comment, err := c.Service.GetByID(id) 
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, map[string]interface{}{
-			"status":"not found",
-			"msg_dev":err.Error(),
+		ctx.AbortWithStatusJSON(http.StatusNotFound, dto.ErrorResponse{
+			Message: "comment not found",
 		})
 		return
 	}
@@ -116,9 +113,8 @@ func (c *CommentController) DeleteComment(ctx *gin.Context) {
 	comment, err = c.Service.Delete(comment)
 	
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, map[string]interface{}{
-			"status":"failed to deleted ",
-			"msg_dev":err.Error(),
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Message: "failed to delete comment because " + err.Error(),
 		})
 		return
 	}
